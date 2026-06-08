@@ -9,35 +9,74 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; padding: 20px; }
     h1 { text-align: center; margin-bottom: 6px; font-size: 1.6rem; }
-    .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 24px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 1000px; margin: auto; }
-    .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    .label { font-size: 0.85rem; color: #888; margin-bottom: 6px; }
-    .value { font-size: 2rem; font-weight: bold; }
-    .good { color: #16a34a; }
-    .ok { color: #d97706; }
-    .high { color: #dc2626; }
-    .conn { text-align: center; margin: 16px auto; font-size: 0.9rem; padding: 8px 20px; border-radius: 20px; display: inline-block; }
-    .conn-ok { background: #dcfce7; color: #16a34a; }
+    .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+    .center { text-align: center; margin-bottom: 20px; }
+    .conn { display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 0.9rem; }
+    .conn-ok  { background: #dcfce7; color: #16a34a; }
     .conn-err { background: #fee2e2; color: #dc2626; }
-    .center { text-align: center; }
-    .badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
-    .badge-on { background: #dcfce7; color: #16a34a; }
-    .badge-off { background: #f1f5f9; color: #94a3b8; }
-    .timestamp { text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 20px; }
-    .raw { background: #1e293b; color: #94d2bd; border-radius: 12px; padding: 16px; font-size: 0.78rem; max-width: 1000px; margin: 16px auto 0; overflow-x: auto; }
+
+    .section-title {
+      max-width: 1000px; margin: 24px auto 10px;
+      font-size: 1rem; font-weight: bold; color: #444;
+      border-left: 4px solid #0d6efd; padding-left: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; max-width: 1000px; margin: auto;
+    }
+
+    .card {
+      background: #fff; border-radius: 16px;
+      padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .label { font-size: 0.85rem; color: #888; margin-bottom: 6px; }
+    .value { font-size: 2rem; font-weight: bold; margin-bottom: 12px; }
+    .good { color: #16a34a; }
+    .ok   { color: #d97706; }
+    .high { color: #dc2626; }
+
+    .btn-row { display: flex; gap: 8px; margin-top: 4px; }
+
+    .btn {
+      flex: 1; padding: 10px 6px;
+      border: none; border-radius: 10px;
+      font-size: 0.9rem; font-weight: bold;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-on  { background: #16a34a; color: white; }
+    .btn-off { background: #dc2626; color: white; }
+    .btn-pulse { background: #0d6efd; color: white; }
+
+    .timestamp {
+      text-align: center; color: #aaa;
+      font-size: 0.8rem; margin-top: 20px;
+      max-width: 1000px; margin: 20px auto 0;
+    }
+
+    .raw {
+      background: #1e293b; color: #94d2bd;
+      border-radius: 12px; padding: 16px;
+      font-size: 0.78rem; max-width: 1000px;
+      margin: 16px auto 0; overflow-x: auto;
+    }
   </style>
 </head>
 <body>
 
   <h1>QROBOTIX Water Quality Monitor</h1>
-  <p class="subtitle">Live ESP32 data via EMQX Cloud MQTT</p>
+  <p class="subtitle">Live ESP32 data via EMQX Cloud MQTT — Remote Control</p>
 
   <div class="center">
     <span class="conn conn-err" id="connStatus">Connecting...</span>
   </div>
 
-  <div class="grid" style="margin-top:20px;">
+  <!-- SENSOR READINGS -->
+  <div class="section-title">Sensor Readings</div>
+  <div class="grid">
     <div class="card">
       <div class="label">pH Value</div>
       <div class="value" id="ph">--</div>
@@ -50,34 +89,67 @@
       <div class="label">Water Status</div>
       <div class="value" id="wstatus">--</div>
     </div>
+  </div>
+
+  <!-- MOTOR & LIGHT -->
+  <div class="section-title">Motor & Light Control</div>
+  <div class="grid">
     <div class="card">
       <div class="label">Motor</div>
       <div class="value" id="motor">--</div>
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('motor_on')">ON</button>
+        <button class="btn btn-off" onclick="sendCmd('motor_off')">OFF</button>
+      </div>
     </div>
     <div class="card">
       <div class="label">Light</div>
       <div class="value" id="light">--</div>
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('light_on')">ON</button>
+        <button class="btn btn-off" onclick="sendCmd('light_off')">OFF</button>
+      </div>
     </div>
+  </div>
+
+  <!-- VALVES -->
+  <div class="section-title">Valve Control</div>
+  <div class="grid">
     <div class="card">
       <div class="label">Valve 1</div>
       <div class="value" id="valve1">--</div>
+      <div class="btn-row">
+        <button class="btn btn-on"    onclick="sendCmd('valve1_on')">OPEN</button>
+        <button class="btn btn-off"   onclick="sendCmd('valve1_off')">CLOSE</button>
+      </div>
     </div>
     <div class="card">
       <div class="label">Valve 2</div>
       <div class="value" id="valve2">--</div>
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('valve2_on')">OPEN</button>
+        <button class="btn btn-off" onclick="sendCmd('valve2_off')">CLOSE</button>
+      </div>
     </div>
     <div class="card">
       <div class="label">Valve 3</div>
       <div class="value" id="valve3">--</div>
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('valve3_on')">OPEN</button>
+        <button class="btn btn-off" onclick="sendCmd('valve3_off')">CLOSE</button>
+      </div>
     </div>
     <div class="card">
       <div class="label">Valve 4</div>
       <div class="value" id="valve4">--</div>
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('valve4_on')">OPEN</button>
+        <button class="btn btn-off" onclick="sendCmd('valve4_off')">CLOSE</button>
+      </div>
     </div>
   </div>
 
   <p class="timestamp" id="lastSeen">Waiting for data...</p>
-
   <pre class="raw" id="rawJson">{ waiting for payload... }</pre>
 
   <script>
@@ -91,12 +163,15 @@
       reconnectPeriod: 3000
     };
 
+    const TOPIC_LIVE = "nkarthik/waterquality/live";
+    const TOPIC_CMD  = "nkarthik/waterquality/cmd";
+
     const client = mqtt.connect(broker, options);
 
     client.on("connect", () => {
       document.getElementById("connStatus").textContent = "Connected to EMQX Cloud";
       document.getElementById("connStatus").className = "conn conn-ok";
-      client.subscribe("nkarthik/waterquality/live");
+      client.subscribe(TOPIC_LIVE);
     });
 
     client.on("reconnect", () => {
@@ -113,7 +188,7 @@
       try {
         const d = JSON.parse(message.toString());
 
-        document.getElementById("ph").textContent = d.ph ?? "--";
+        document.getElementById("ph").textContent  = d.ph ?? "--";
         document.getElementById("tds").textContent = (d.tds ?? "--") + " ppm";
 
         const ws = document.getElementById("wstatus");
@@ -130,10 +205,8 @@
         setOnOff("valve3", d.valve3);
         setOnOff("valve4", d.valve4);
 
-        const now = new Date();
         document.getElementById("lastSeen").textContent =
-          "Last updated: " + now.toLocaleTimeString();
-
+          "Last updated: " + new Date().toLocaleTimeString();
         document.getElementById("rawJson").textContent =
           JSON.stringify(d, null, 2);
 
@@ -145,7 +218,16 @@
     function setOnOff(id, val) {
       const el = document.getElementById(id);
       el.textContent = val ? "ON" : "OFF";
-      el.className = "value " + (val ? "good" : "");
+      el.className   = "value " + (val ? "good" : "");
+    }
+
+    function sendCmd(cmd) {
+      if (!client.connected) {
+        alert("Not connected to MQTT broker");
+        return;
+      }
+      client.publish(TOPIC_CMD, cmd, { qos: 0, retain: false });
+      console.log("Sent command: " + cmd);
     }
   </script>
 </body>
