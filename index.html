@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QROBOTIX Water Quality</title>
-  <script src="https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js"></script>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; padding: 20px; }
@@ -23,7 +23,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px; max-width: 1000px; margin: auto;
     }
 
@@ -32,45 +32,29 @@
       padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
 
-    .label { font-size: 0.85rem; color: #888; margin-bottom: 4px; }
-    .value { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
+    .label { font-size: 0.85rem; color: #888; margin-bottom: 6px; }
+    .value { font-size: 2rem; font-weight: bold; margin-bottom: 12px; }
     .good { color: #16a34a; }
     .ok   { color: #d97706; }
     .high { color: #dc2626; }
 
-    /* single row for motor/light */
     .btn-row { display: flex; gap: 8px; margin-top: 4px; }
 
-    /* valve has 3 buttons so use a grid */
-    .btn-valve-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
     .btn {
-      padding: 10px 4px;
+      flex: 1; padding: 10px 6px;
       border: none; border-radius: 10px;
-      font-size: 0.82rem; font-weight: bold;
+      font-size: 0.9rem; font-weight: bold;
       cursor: pointer; transition: opacity 0.15s;
     }
-    .btn:hover { opacity: 0.82; }
-    .btn:active { transform: scale(0.96); }
-
-    .btn-on    { background: #16a34a; color: white; }
-    .btn-off   { background: #dc2626; color: white; }
+    .btn:hover { opacity: 0.85; }
+    .btn-on  { background: #16a34a; color: white; }
+    .btn-off { background: #dc2626; color: white; }
     .btn-pulse { background: #0d6efd; color: white; }
-
-    .note {
-      font-size: 0.72rem; color: #94a3b8;
-      margin-top: 8px; line-height: 1.4;
-    }
 
     .timestamp {
       text-align: center; color: #aaa;
-      font-size: 0.8rem; margin: 20px auto 0;
-      max-width: 1000px;
+      font-size: 0.8rem; margin-top: 20px;
+      max-width: 1000px; margin: 20px auto 0;
     }
 
     .raw {
@@ -131,74 +115,45 @@
   <!-- VALVES -->
   <div class="section-title">Valve Control</div>
   <div class="grid">
-
     <div class="card">
       <div class="label">Valve 1</div>
       <div class="value" id="valve1">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve1_pulse')" title="Opens for 2 seconds then auto-closes">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve1_open')"  title="Hold open until CLOSE is pressed">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve1_close')" title="Close valve immediately">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
+      <div class="btn-row">
+        <button class="btn btn-on"    onclick="sendCmd('valve1_on')">OPEN</button>
+        <button class="btn btn-off"   onclick="sendCmd('valve1_off')">CLOSE</button>
       </div>
     </div>
-
     <div class="card">
       <div class="label">Valve 2</div>
       <div class="value" id="valve2">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve2_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve2_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve2_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('valve2_on')">OPEN</button>
+        <button class="btn btn-off" onclick="sendCmd('valve2_off')">CLOSE</button>
       </div>
     </div>
-
     <div class="card">
       <div class="label">Valve 3</div>
       <div class="value" id="valve3">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve3_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve3_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve3_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('valve3_on')">OPEN</button>
+        <button class="btn btn-off" onclick="sendCmd('valve3_off')">CLOSE</button>
       </div>
     </div>
-
     <div class="card">
       <div class="label">Valve 4</div>
       <div class="value" id="valve4">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve4_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve4_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve4_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
+      <div class="btn-row">
+        <button class="btn btn-on"  onclick="sendCmd('valve4_on')">OPEN</button>
+        <button class="btn btn-off" onclick="sendCmd('valve4_off')">CLOSE</button>
       </div>
     </div>
-
   </div>
 
   <p class="timestamp" id="lastSeen">Waiting for data...</p>
   <pre class="raw" id="rawJson">{ waiting for payload... }</pre>
 
   <script>
-    const broker  = "wss://ye9b1110.ala.asia-southeast1.emqxsl.com:8084/mqtt";
+    const broker = "wss://ye9b1110.ala.asia-southeast1.emqxsl.com:8084/mqtt";
     const options = {
       clientId: "dashboard_" + Math.random().toString(16).slice(2, 8),
       username: "qugates",
@@ -245,10 +200,10 @@
 
         setOnOff("motor",  d.motor);
         setOnOff("light",  d.light);
-        setValve("valve1", d.valve1);
-        setValve("valve2", d.valve2);
-        setValve("valve3", d.valve3);
-        setValve("valve4", d.valve4);
+        setOnOff("valve1", d.valve1);
+        setOnOff("valve2", d.valve2);
+        setOnOff("valve3", d.valve3);
+        setOnOff("valve4", d.valve4);
 
         document.getElementById("lastSeen").textContent =
           "Last updated: " + new Date().toLocaleTimeString();
@@ -266,6 +221,14 @@
       el.className   = "value " + (val ? "good" : "");
     }
 
-    function setValve(id, val) {
-      const el = document.getElementById(id);
-      el.textContent =
+    function sendCmd(cmd) {
+      if (!client.connected) {
+        alert("Not connected to MQTT broker");
+        return;
+      }
+      client.publish(TOPIC_CMD, cmd, { qos: 0, retain: false });
+      console.log("Sent command: " + cmd);
+    }
+  </script>
+</body>
+</html>
