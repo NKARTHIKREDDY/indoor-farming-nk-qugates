@@ -6,184 +6,255 @@
   <title>QROBOTIX Water Quality</title>
   <script src="https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; padding: 20px; }
-    h1 { text-align: center; margin-bottom: 6px; font-size: 1.6rem; }
-    .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 20px; }
-    .center { text-align: center; margin-bottom: 20px; }
-    .conn { display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 0.9rem; }
-    .conn-ok  { background: #dcfce7; color: #16a34a; }
-    .conn-err { background: #fee2e2; color: #dc2626; }
-    .section-title {
-      max-width: 1000px; margin: 24px auto 10px;
-      font-size: 1rem; font-weight: bold; color: #444;
-      border-left: 4px solid #0d6efd; padding-left: 10px;
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Arial,sans-serif;
+      background:radial-gradient(circle at top,#0f172a 0%,#020617 55%,#000 100%);
+      color:#e2e8f0;
+      padding:24px 16px 40px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 16px; max-width: 1000px; margin: auto;
+    .wrap{max-width:1120px;margin:auto}
+    .hero,.card,.raw{
+      background:rgba(15,23,42,0.82);
+      border:1px solid rgba(59,130,246,0.16);
+      box-shadow:0 0 0 1px rgba(30,41,59,.45), 0 20px 50px rgba(0,0,0,.45);
+      backdrop-filter:blur(8px);
     }
-    .card {
-      background: #fff; border-radius: 16px;
-      padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    .hero{
+      border-radius:26px;
+      padding:24px;
+      margin-bottom:22px;
     }
-    .label { font-size: 0.85rem; color: #888; margin-bottom: 4px; }
-    .value { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
-    .good { color: #16a34a; }
-    .ok   { color: #d97706; }
-    .high { color: #dc2626; }
-    .btn-row { display: flex; gap: 8px; margin-top: 4px; }
-    .btn-valve-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px; margin-top: 4px;
+    h1{
+      font-size:2rem;
+      margin-bottom:6px;
+      color:#f8fafc;
     }
-    .btn {
-      padding: 10px 4px;
-      border: none; border-radius: 10px;
-      font-size: 0.82rem; font-weight: bold;
-      cursor: pointer; transition: opacity 0.15s;
+    .subtitle{
+      color:#94a3b8;
+      font-size:.98rem;
     }
-    .btn:hover  { opacity: 0.82; }
-    .btn:active { transform: scale(0.96); }
-    .btn-on    { background: #16a34a; color: white; }
-    .btn-off   { background: #dc2626; color: white; }
-    .btn-pulse { background: #0d6efd; color: white; }
-    .note {
-      font-size: 0.72rem; color: #94a3b8;
-      margin-top: 8px; line-height: 1.5;
+    .hero-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
     }
-    .timestamp {
-      text-align: center; color: #aaa;
-      font-size: 0.8rem; margin: 20px auto 0;
-      max-width: 1000px;
+    .conn{
+      display:inline-flex;
+      align-items:center;
+      padding:10px 16px;
+      border-radius:999px;
+      font-size:.92rem;
+      font-weight:800;
+      border:1px solid transparent;
     }
-    .raw {
-      background: #1e293b; color: #94d2bd;
-      border-radius: 12px; padding: 16px;
-      font-size: 0.78rem; max-width: 1000px;
-      margin: 16px auto 0; overflow-x: auto;
+    .conn-ok{
+      background:rgba(34,197,94,.12);
+      color:#4ade80;
+      border-color:rgba(74,222,128,.25);
+      box-shadow:0 0 18px rgba(34,197,94,.18);
+    }
+    .conn-err{
+      background:rgba(239,68,68,.12);
+      color:#f87171;
+      border-color:rgba(248,113,113,.25);
+      box-shadow:0 0 18px rgba(239,68,68,.18);
+    }
+    .section-title{
+      margin:26px 0 12px;
+      color:#93c5fd;
+      font-weight:800;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.9rem;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:16px;
+    }
+    .card{
+      border-radius:22px;
+      padding:18px;
+    }
+    .label{
+      color:#94a3b8;
+      font-size:.78rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      font-weight:700;
+    }
+    .value{
+      font-size:1.95rem;
+      font-weight:800;
+      margin-bottom:12px;
+    }
+    .good{color:#4ade80;text-shadow:0 0 12px rgba(74,222,128,.25)}
+    .ok{color:#f59e0b;text-shadow:0 0 12px rgba(245,158,11,.25)}
+    .high{color:#f87171;text-shadow:0 0 12px rgba(248,113,113,.25)}
+    .muted{color:#cbd5e1}
+    .btn-row{display:flex;gap:10px}
+    .btn-valve-row{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:8px;
+    }
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:12px 8px;
+      font-size:.82rem;
+      font-weight:800;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:scale(.98)}
+    .btn-on{
+      background:linear-gradient(180deg,#22c55e,#15803d);
+      color:#fff;
+      box-shadow:0 0 16px rgba(34,197,94,.2);
+    }
+    .btn-off{
+      background:linear-gradient(180deg,#ef4444,#b91c1c);
+      color:#fff;
+      box-shadow:0 0 16px rgba(239,68,68,.18);
+    }
+    .btn-pulse{
+      background:linear-gradient(180deg,#3b82f6,#1d4ed8);
+      color:#fff;
+      box-shadow:0 0 16px rgba(59,130,246,.2);
+    }
+    .note{
+      margin-top:10px;
+      color:#94a3b8;
+      font-size:.75rem;
+      line-height:1.5;
+    }
+    .timestamp{
+      margin:18px 0 12px;
+      text-align:center;
+      color:#94a3b8;
+      font-size:.9rem;
+    }
+    .raw{
+      border-radius:20px;
+      padding:16px;
+      font-size:.8rem;
+      color:#67e8f9;
+      overflow:auto;
+    }
+    @media(max-width:640px){
+      h1{font-size:1.6rem}
+      .value{font-size:1.65rem}
+      .btn-valve-row{grid-template-columns:1fr}
     }
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>QROBOTIX Water Quality Monitor</h1>
+          <p class="subtitle">Live ESP32 telemetry via EMQX Cloud MQTT</p>
+        </div>
+        <span class="conn conn-err" id="connStatus">Connecting...</span>
+      </div>
+    </section>
 
-  <h1>QROBOTIX Water Quality Monitor</h1>
-  <p class="subtitle">Live ESP32 data via EMQX Cloud MQTT</p>
+    <div class="section-title">Sensor Readings</div>
+    <div class="grid">
+      <div class="card">
+        <div class="label">pH Value</div>
+        <div class="value muted" id="ph">--</div>
+      </div>
+      <div class="card">
+        <div class="label">TDS</div>
+        <div class="value muted" id="tds">-- ppm</div>
+      </div>
+      <div class="card">
+        <div class="label">Water Status</div>
+        <div class="value muted" id="wstatus">--</div>
+      </div>
+    </div>
 
-  <div class="center">
-    <span class="conn conn-err" id="connStatus">Connecting...</span>
+    <div class="section-title">Motor & Light Control</div>
+    <div class="grid">
+      <div class="card">
+        <div class="label">Motor</div>
+        <div class="value muted" id="motor">--</div>
+        <div class="btn-row">
+          <button class="btn btn-on" onclick="sendCmd('motor_on')">ON</button>
+          <button class="btn btn-off" onclick="sendCmd('motor_off')">OFF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="label">Light</div>
+        <div class="value muted" id="light">--</div>
+        <div class="btn-row">
+          <button class="btn btn-on" onclick="sendCmd('light_on')">ON</button>
+          <button class="btn btn-off" onclick="sendCmd('light_off')">OFF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Valve Control</div>
+    <div class="grid">
+      <div class="card">
+        <div class="label">Valve 1</div>
+        <div class="value muted" id="valve1">--</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve1_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve1_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve1_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2s. Open = manual hold. Close = immediate stop.</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Valve 2</div>
+        <div class="value muted" id="valve2">--</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve2_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve2_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve2_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2s. Open = manual hold. Close = immediate stop.</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Valve 3</div>
+        <div class="value muted" id="valve3">--</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve3_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve3_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve3_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2s. Open = manual hold. Close = immediate stop.</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Valve 4</div>
+        <div class="value muted" id="valve4">--</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve4_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve4_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve4_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2s. Open = manual hold. Close = immediate stop.</div>
+      </div>
+    </div>
+
+    <p class="timestamp" id="lastSeen">Waiting for data...</p>
+    <pre class="raw" id="rawJson">{ waiting for payload... }</pre>
   </div>
-
-  <div class="section-title">Sensor Readings</div>
-  <div class="grid">
-    <div class="card">
-      <div class="label">pH Value</div>
-      <div class="value" id="ph">--</div>
-    </div>
-    <div class="card">
-      <div class="label">TDS</div>
-      <div class="value" id="tds">-- ppm</div>
-    </div>
-    <div class="card">
-      <div class="label">Water Status</div>
-      <div class="value" id="wstatus">--</div>
-    </div>
-  </div>
-
-  <div class="section-title">Motor & Light Control</div>
-  <div class="grid">
-    <div class="card">
-      <div class="label">Motor</div>
-      <div class="value" id="motor">--</div>
-      <div class="btn-row">
-        <button class="btn btn-on"  onclick="sendCmd('motor_on')">ON</button>
-        <button class="btn btn-off" onclick="sendCmd('motor_off')">OFF</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="label">Light</div>
-      <div class="value" id="light">--</div>
-      <div class="btn-row">
-        <button class="btn btn-on"  onclick="sendCmd('light_on')">ON</button>
-        <button class="btn btn-off" onclick="sendCmd('light_off')">OFF</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-title">Valve Control</div>
-  <div class="grid">
-
-    <div class="card">
-      <div class="label">Valve 1</div>
-      <div class="value" id="valve1">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve1_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve1_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve1_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="label">Valve 2</div>
-      <div class="value" id="valve2">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve2_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve2_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve2_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="label">Valve 3</div>
-      <div class="value" id="valve3">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve3_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve3_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve3_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="label">Valve 4</div>
-      <div class="value" id="valve4">--</div>
-      <div class="btn-valve-row">
-        <button class="btn btn-pulse" onclick="sendCmd('valve4_pulse')">PULSE</button>
-        <button class="btn btn-on"    onclick="sendCmd('valve4_open')">OPEN</button>
-        <button class="btn btn-off"   onclick="sendCmd('valve4_close')">CLOSE</button>
-      </div>
-      <div class="note">
-        PULSE = auto-close after 2s<br>
-        OPEN = hold open (manual)<br>
-        CLOSE = close immediately
-      </div>
-    </div>
-
-  </div>
-
-  <p class="timestamp" id="lastSeen">Waiting for data...</p>
-  <pre class="raw" id="rawJson">{ waiting for payload... }</pre>
 
   <script>
-    console.log("Dashboard starting...");
-
-    const broker  = "wss://ye9b1110.ala.asia-southeast1.emqxsl.com:8084/mqtt";
+    const broker = "wss://ye9b1110.ala.asia-southeast1.emqxsl.com:8084/mqtt";
     const options = {
       clientId: "dashboard_" + Math.random().toString(16).slice(2, 8),
       username: "qugates",
@@ -196,48 +267,35 @@
     const TOPIC_LIVE = "nkarthik/waterquality/live";
     const TOPIC_CMD  = "nkarthik/waterquality/cmd";
 
-    console.log("Connecting to broker...");
     const client = mqtt.connect(broker, options);
 
     client.on("connect", () => {
-      console.log("MQTT connected successfully");
       document.getElementById("connStatus").textContent = "Connected to EMQX Cloud";
       document.getElementById("connStatus").className = "conn conn-ok";
-      client.subscribe(TOPIC_LIVE, (err) => {
-        if (err) console.log("Subscribe error: " + err);
-        else     console.log("Subscribed to: " + TOPIC_LIVE);
-      });
+      client.subscribe(TOPIC_LIVE);
     });
 
     client.on("reconnect", () => {
-      console.log("Reconnecting...");
       document.getElementById("connStatus").textContent = "Reconnecting...";
       document.getElementById("connStatus").className = "conn conn-err";
     });
 
-    client.on("error", (err) => {
-      console.log("MQTT error: " + err);
+    client.on("error", () => {
       document.getElementById("connStatus").textContent = "Connection Error";
       document.getElementById("connStatus").className = "conn conn-err";
     });
 
-    client.on("close", () => {
-      console.log("Connection closed");
-    });
-
     client.on("message", (topic, message) => {
-      console.log("Message received: " + message.toString());
       try {
         const d = JSON.parse(message.toString());
-
         document.getElementById("ph").textContent  = d.ph ?? "--";
         document.getElementById("tds").textContent = (d.tds ?? "--") + " ppm";
 
         const ws = document.getElementById("wstatus");
         ws.textContent = d.water_status ?? "--";
-        ws.className   = "value " + (
+        ws.className = "value " + (
           d.water_status === "GOOD" ? "good" :
-          d.water_status === "OK"   ? "ok"   : "high"
+          d.water_status === "OK" ? "ok" : "high"
         );
 
         setOnOff("motor", d.motor);
@@ -251,9 +309,7 @@
           "Last updated: " + new Date().toLocaleTimeString();
         document.getElementById("rawJson").textContent =
           JSON.stringify(d, null, 2);
-
       } catch(e) {
-        console.log("Parse error: " + e);
         document.getElementById("rawJson").textContent = message.toString();
       }
     });
@@ -261,13 +317,13 @@
     function setOnOff(id, val) {
       const el = document.getElementById(id);
       el.textContent = val ? "ON" : "OFF";
-      el.className   = "value " + (val ? "good" : "");
+      el.className = "value " + (val ? "good" : "high");
     }
 
     function setValve(id, val) {
       const el = document.getElementById(id);
       el.textContent = val ? "OPEN" : "CLOSED";
-      el.className   = "value " + (val ? "good" : "");
+      el.className = "value " + (val ? "good" : "muted");
     }
 
     function sendCmd(cmd) {
@@ -276,9 +332,7 @@
         return;
       }
       client.publish(TOPIC_CMD, cmd, { qos: 0, retain: false });
-      console.log("Command sent: " + cmd);
     }
   </script>
-
 </body>
 </html>
