@@ -1,186 +1,616 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QROBOTIX - Login</title>
-  <style>
-    body { background: #020617; color: #e2e8f0; font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-    .card { background: #0f172acc; border: 1px solid rgba(59,130,246,0.18); border-radius: 24px; padding: 40px 30px; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.45); }
-    h2 { color: #f8fafc; margin-bottom: 8px; font-size: 1.8rem; }
-    p { color: #94a3b8; margin-bottom: 24px; }
-    input { width: calc(100% - 32px); padding: 14px 16px; margin-bottom: 16px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.18); background: rgba(15,23,42,0.6); color: white; font-size: 1rem; }
-    input:focus { outline: none; border-color: #22d3ee; }
-    button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(180deg, #3b82f6, #1d4ed8); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-    #error { color: #f87171; display: none; margin-bottom: 15px; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>QROBOTIX</h2>
-    <p>System Authentication</p>
-    <div id="error">Invalid credentials</div>
-    <input type="text" id="user" placeholder="Username" autocomplete="off">
-    <input type="password" id="pass" placeholder="Password">
-    <button onclick="login()">SECURE LOGIN</button>
-  </div>
-
-  <script>
-    document.getElementById("pass").addEventListener("keypress", function(e) { if (e.key === "Enter") login(); });
-
-    async function login() {
-      const u = document.getElementById('user').value;
-      const p = document.getElementById('pass').value;
-      
-      const res = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p)
-      });
-
-      if (res.ok) {
-        window.location.href = '/dashboard';
-      } else {
-        document.getElementById('error').style.display = 'block';
-      }
-    }
-  </script>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QROBOTIX Water Quality</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QROBOTIX Water Quality - Login</title>
   <script src="https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root{ --bg-1:#020617; --bg-2:#0f172a; --panel:#0f172acc; --border:rgba(59,130,246,0.18); --text:#e2e8f0; --muted:#94a3b8; --blue:#3b82f6; --blue-2:#1d4ed8; --green:#22c55e; --green-2:#15803d; --red:#ef4444; --red-2:#b91c1c; --amber:#f59e0b; --cyan:#22d3ee; }
-    body { font-family: Inter, Arial, sans-serif; min-height: 100vh; background: radial-gradient(circle at top, rgba(59,130,246,0.18) 0%, transparent 26%), linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 55%, #000 100%); color: var(--text); padding: 24px 16px 40px; }
-    .wrap { max-width: 1140px; margin: auto; }
-    .hero, .card, .raw { background: var(--panel); backdrop-filter: blur(10px); border: 1px solid var(--border); box-shadow: 0 0 0 1px rgba(15,23,42,0.4), 0 20px 50px rgba(0,0,0,0.45); }
-    .hero { border-radius: 28px; padding: 26px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;}
-    .title-block h1 { font-size: 2rem; color: #f8fafc; margin-bottom: 8px; }
-    .subtitle { color: var(--muted); font-size: 0.98rem; max-width: 60ch; }
-    .conn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; color: #cbd5e1; background: rgba(15,23,42,0.55); }
-    .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
-    .conn-ok { color: #4ade80; background: rgba(34,197,94,0.12); }
-    .conn-err { color: #f87171; background: rgba(239,68,68,0.12); }
-    .section-title { margin: 26px 0 12px; color: #93c5fd; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-    .card { border-radius: 22px; padding: 18px; }
-    .label { color: var(--muted); font-size: 0.76rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
-    .value { font-size: 1.95rem; font-weight: 800; margin-bottom: 12px; }
-    .subvalue { font-size: 0.84rem; color: var(--muted); margin-top: -6px; margin-bottom: 12px; }
-    .status-good, .status-on { color: #4ade80; } .status-ok { color: var(--amber); } .status-high, .status-off { color: #f87171; } .status-idle { color: #cbd5e1; }
-    .btn-row { display: flex; gap: 10px; } .btn-valve-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-    .btn { border: none; border-radius: 12px; padding: 12px 8px; font-size: 0.82rem; font-weight: 800; color: white; cursor: pointer; transition: 0.18s ease; }
+
+    :root{
+      --bg-1:#020617;
+      --bg-2:#0f172a;
+      --panel:#0f172acc;
+      --panel-strong:#111827;
+      --border:rgba(59,130,246,0.18);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --blue:#3b82f6;
+      --blue-2:#1d4ed8;
+      --green:#22c55e;
+      --green-2:#15803d;
+      --red:#ef4444;
+      --red-2:#b91c1c;
+      --amber:#f59e0b;
+      --cyan:#22d3ee;
+    }
+
+    body {
+      font-family: Inter, Arial, sans-serif;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(59,130,246,0.18) 0%, transparent 26%),
+        radial-gradient(circle at right top, rgba(34,211,238,0.10) 0%, transparent 22%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 55%, #000 100%);
+      color: var(--text);
+      padding: 24px 16px 40px;
+    }
+
+    .wrap {
+      max-width: 1140px;
+      margin: auto;
+    }
+
+    /* Hide dashboard initially */
+    #dashboard-wrap {
+      display: none;
+    }
+
+    .hero,
+    .card,
+    .raw {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.4),
+        0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    .hero {
+      border-radius: 28px;
+      padding: 26px;
+      margin-bottom: 24px;
+    }
+
+    /* --- LOGIN STYLES --- */
+    #login-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 85vh;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 40px 30px;
+      border-radius: 24px;
+      text-align: center;
+    }
+
+    .login-card h2 {
+      color: #f8fafc;
+      margin-bottom: 8px;
+      font-size: 1.8rem;
+    }
+
+    .login-card .subtitle {
+      margin: 0 auto 24px auto;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: white;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(34,211,238,0.2);
+    }
+
+    .error-msg {
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: none;
+      font-weight: 600;
+    }
+    /* -------------------- */
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .title-block h1 {
+      font-size: 2rem;
+      line-height: 1.1;
+      color: #f8fafc;
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.98rem;
+      max-width: 60ch;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .mini-badge,
+    .conn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 1px solid rgba(148,163,184,0.16);
+      color: #cbd5e1;
+      background: rgba(15,23,42,0.55);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .conn-ok {
+      color: #4ade80;
+      border-color: rgba(74,222,128,0.24);
+      background: rgba(34,197,94,0.12);
+      box-shadow: 0 0 18px rgba(34,197,94,0.14);
+    }
+
+    .conn-err {
+      color: #f87171;
+      border-color: rgba(248,113,113,0.24);
+      background: rgba(239,68,68,0.12);
+      box-shadow: 0 0 18px rgba(239,68,68,0.12);
+    }
+
+    .section-title {
+      margin: 26px 0 12px;
+      color: #93c5fd;
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border-radius: 22px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%);
+      pointer-events: none;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .value {
+      font-size: 1.95rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-good { color: #4ade80; text-shadow: 0 0 14px rgba(74,222,128,0.20); }
+    .status-ok   { color: var(--amber); text-shadow: 0 0 14px rgba(245,158,11,0.20); }
+    .status-high { color: #f87171; text-shadow: 0 0 14px rgba(248,113,113,0.20); }
+    .status-idle { color: #cbd5e1; }
+    .status-on   { color: #4ade80; text-shadow: 0 0 14px rgba(74,222,128,0.20); }
+    .status-off  { color: #f87171; text-shadow: 0 0 14px rgba(248,113,113,0.20); }
+
+    .subvalue {
+      font-size: 0.84rem;
+      color: var(--muted);
+      margin-top: -6px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-valve-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 8px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+    }
+
     .btn:hover { transform: translateY(-1px); opacity: 0.96; }
-    .btn-on { background: linear-gradient(180deg, var(--green), var(--green-2)); } .btn-off { background: linear-gradient(180deg, var(--red), var(--red-2)); } .btn-pulse { background: linear-gradient(180deg, var(--blue), var(--blue-2)); }
-    .diag-grid { margin-top: 18px; text-align: center; } .raw { border-radius: 20px; padding: 16px; color: #67e8f9; font-size: 0.8rem; text-align: left; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-on {
+      background: linear-gradient(180deg, var(--green), var(--green-2));
+      box-shadow: 0 0 18px rgba(34,197,94,0.18);
+    }
+
+    .btn-off {
+      background: linear-gradient(180deg, var(--red), var(--red-2));
+      box-shadow: 0 0 18px rgba(239,68,68,0.16);
+    }
+
+    .btn-pulse {
+      background: linear-gradient(180deg, var(--blue), var(--blue-2));
+      box-shadow: 0 0 18px rgba(59,130,246,0.18);
+    }
+
+    .note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.55;
+      position: relative;
+      z-index: 1;
+    }
+
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .timestamp {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .raw {
+      border-radius: 20px;
+      padding: 16px;
+      color: #67e8f9;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.78rem;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .title-block h1 { font-size: 1.6rem; }
+      .value { font-size: 1.6rem; }
+      .btn-valve-row { grid-template-columns: 1fr; }
+      .hero { padding: 20px; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+
+  <div id="login-wrap">
+    <div class="card login-card">
+      <h2>QROBOTIX</h2>
+      <p class="subtitle">System Authentication</p>
+      
+      <div class="error-msg" id="loginError">Invalid username or password</div>
+      
+      <input type="text" id="usernameInput" class="login-input" placeholder="Username" autocomplete="off" />
+      <input type="password" id="passwordInput" class="login-input" placeholder="Password" />
+      
+      <button class="btn btn-pulse" style="width: 100%; font-size: 1rem; margin-top: 8px;" onclick="attemptLogin()">SECURE LOGIN</button>
+    </div>
+  </div>
+
+
+  <div class="wrap" id="dashboard-wrap">
     <section class="hero">
-      <div class="title-block">
-        <h1>QROBOTIX Water Quality Monitor</h1>
-        <p class="subtitle">Dark tech control dashboard for live ESP32 telemetry.</p>
-        <button class="btn btn-off" style="margin-top: 15px; width: auto; padding: 8px 16px;" onclick="logout()">LOGOUT</button>
+      <div class="hero-top">
+        <div class="title-block">
+          <h1>QROBOTIX Water Quality Monitor</h1>
+          <p class="subtitle">Dark tech control dashboard for live ESP32 telemetry, relay control, and valve management through EMQX Cloud MQTT.</p>
+          <div class="badge-row">
+            <span class="mini-badge"><span class="dot" style="color:#22d3ee;"></span>ESP32 Live Feed</span>
+            <span class="mini-badge"><span class="dot" style="color:#3b82f6;"></span>MQTT Command Control</span>
+          </div>
+        </div>
+
+        <span class="conn conn-err" id="connStatus">
+          <span class="dot"></span>
+          Connecting...
+        </span>
       </div>
-      <span class="conn conn-err" id="connStatus"><span class="dot"></span>Connecting...</span>
     </section>
 
     <div class="section-title">Sensor Readings</div>
     <div class="grid">
-      <div class="card"><div class="label">pH Value</div><div class="value status-idle" id="ph">--</div></div>
-      <div class="card"><div class="label">TDS</div><div class="value status-idle" id="tds">-- ppm</div></div>
-      <div class="card"><div class="label">Water Status</div><div class="value status-idle" id="wstatus">--</div></div>
+      <div class="card">
+        <div class="label">pH Value</div>
+        <div class="value status-idle" id="ph">--</div>
+        <div class="subvalue">Hydrogen ion balance</div>
+      </div>
+
+      <div class="card">
+        <div class="label">TDS</div>
+        <div class="value status-idle" id="tds">-- ppm</div>
+        <div class="subvalue">Total dissolved solids</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Water Status</div>
+        <div class="value status-idle" id="wstatus">--</div>
+        <div class="subvalue">Computed from live TDS reading</div>
+      </div>
     </div>
 
     <div class="section-title">Motor & Light Control</div>
     <div class="grid">
       <div class="card">
-        <div class="label">Motor</div><div class="value status-idle" id="motor">--</div>
-        <div class="btn-row"><button class="btn btn-on" onclick="sendCmd('motor_on')">ON</button><button class="btn btn-off" onclick="sendCmd('motor_off')">OFF</button></div>
+        <div class="label">Motor</div>
+        <div class="value status-idle" id="motor">--</div>
+        <div class="subvalue">Pump or circulation motor state</div>
+        <div class="btn-row">
+          <button class="btn btn-on" onclick="sendCmd('motor_on')">ON</button>
+          <button class="btn btn-off" onclick="sendCmd('motor_off')">OFF</button>
+        </div>
       </div>
+
       <div class="card">
-        <div class="label">Light</div><div class="value status-idle" id="light">--</div>
-        <div class="btn-row"><button class="btn btn-on" onclick="sendCmd('light_on')">ON</button><button class="btn btn-off" onclick="sendCmd('light_off')">OFF</button></div>
+        <div class="label">Light</div>
+        <div class="value status-idle" id="light">--</div>
+        <div class="subvalue">Grow light output state</div>
+        <div class="btn-row">
+          <button class="btn btn-on" onclick="sendCmd('light_on')">ON</button>
+          <button class="btn btn-off" onclick="sendCmd('light_off')">OFF</button>
+        </div>
       </div>
     </div>
 
     <div class="section-title">Valve Control</div>
     <div class="grid">
       <div class="card">
-        <div class="label">Valve 1</div><div class="value status-idle" id="valve1">--</div>
-        <div class="btn-valve-row"><button class="btn btn-pulse" onclick="sendCmd('valve1_pulse')">PULSE</button><button class="btn btn-on" onclick="sendCmd('valve1_open')">OPEN</button><button class="btn btn-off" onclick="sendCmd('valve1_close')">CLOSE</button></div>
+        <div class="label">Valve 1</div>
+        <div class="value status-idle" id="valve1">--</div>
+        <div class="subvalue">Channel 1 output</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve1_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve1_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve1_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2 seconds. Open = manual hold. Close = immediate stop.</div>
       </div>
+
       <div class="card">
-        <div class="label">Valve 2</div><div class="value status-idle" id="valve2">--</div>
-        <div class="btn-valve-row"><button class="btn btn-pulse" onclick="sendCmd('valve2_pulse')">PULSE</button><button class="btn btn-on" onclick="sendCmd('valve2_open')">OPEN</button><button class="btn btn-off" onclick="sendCmd('valve2_close')">CLOSE</button></div>
+        <div class="label">Valve 2</div>
+        <div class="value status-idle" id="valve2">--</div>
+        <div class="subvalue">Channel 2 output</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve2_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve2_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve2_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2 seconds. Open = manual hold. Close = immediate stop.</div>
       </div>
+
       <div class="card">
-        <div class="label">Valve 3</div><div class="value status-idle" id="valve3">--</div>
-        <div class="btn-valve-row"><button class="btn btn-pulse" onclick="sendCmd('valve3_pulse')">PULSE</button><button class="btn btn-on" onclick="sendCmd('valve3_open')">OPEN</button><button class="btn btn-off" onclick="sendCmd('valve3_close')">CLOSE</button></div>
+        <div class="label">Valve 3</div>
+        <div class="value status-idle" id="valve3">--</div>
+        <div class="subvalue">Channel 3 output</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve3_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve3_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve3_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2 seconds. Open = manual hold. Close = immediate stop.</div>
       </div>
+
       <div class="card">
-        <div class="label">Valve 4</div><div class="value status-idle" id="valve4">--</div>
-        <div class="btn-valve-row"><button class="btn btn-pulse" onclick="sendCmd('valve4_pulse')">PULSE</button><button class="btn btn-on" onclick="sendCmd('valve4_open')">OPEN</button><button class="btn btn-off" onclick="sendCmd('valve4_close')">CLOSE</button></div>
+        <div class="label">Valve 4</div>
+        <div class="value status-idle" id="valve4">--</div>
+        <div class="subvalue">Channel 4 output</div>
+        <div class="btn-valve-row">
+          <button class="btn btn-pulse" onclick="sendCmd('valve4_pulse')">PULSE</button>
+          <button class="btn btn-on" onclick="sendCmd('valve4_open')">OPEN</button>
+          <button class="btn btn-off" onclick="sendCmd('valve4_close')">CLOSE</button>
+        </div>
+        <div class="note">Pulse = auto-close after 2 seconds. Open = manual hold. Close = immediate stop.</div>
       </div>
     </div>
 
     <div class="diag-grid">
-      <p id="lastSeen">Waiting for data...</p>
+      <p class="timestamp" id="lastSeen">Waiting for data...</p>
       <pre class="raw" id="rawJson">{ waiting for payload... }</pre>
     </div>
+
+    <p class="footer-note">QROBOTIX • Dark Tech Dashboard • Live Cloud Control</p>
   </div>
 
   <script>
-    function logout() {
-      document.cookie = "ESPSESSIONID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      window.location.href = '/';
-    }
-
-    const broker  = "wss://ye9b1110.ala.asia-southeast1.emqxsl.com:8084/mqtt";
-    const options = { clientId: "dashboard_" + Math.random().toString(16).slice(2, 8), username: "qugates", password: "qugates123", clean: true, connectTimeout: 5000, reconnectPeriod: 3000 };
+    let client = null; // MQTT client instance
     const TOPIC_LIVE = "nkarthik/waterquality/live";
     const TOPIC_CMD  = "nkarthik/waterquality/cmd";
-    const client = mqtt.connect(broker, options);
 
-    client.on("connect", () => {
-      const conn = document.getElementById("connStatus");
-      conn.innerHTML = '<span class="dot"></span>Connected'; conn.className = "conn conn-ok";
-      client.subscribe(TOPIC_LIVE);
+    // Allow hitting "Enter" to submit the login form
+    document.getElementById("passwordInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        attemptLogin();
+      }
     });
 
-    client.on("reconnect", () => { document.getElementById("connStatus").className = "conn conn-err"; });
-    client.on("error", () => { document.getElementById("connStatus").className = "conn conn-err"; });
-    
-    client.on("message", (topic, message) => {
-      try {
-        const d = JSON.parse(message.toString());
-        document.getElementById("ph").textContent = d.ph ?? "--";
-        document.getElementById("tds").textContent = (d.tds ?? "--") + " ppm";
+    // --- LOGIN FUNCTION ---
+    function attemptLogin() {
+      const user = document.getElementById("usernameInput").value;
+      const pass = document.getElementById("passwordInput").value;
+
+      // SET YOUR USERNAME AND PASSWORD HERE
+      const correctUser = "admin";
+      const correctPass = "password123";
+
+      if (user === correctUser && pass === correctPass) {
+        // Hide login, show dashboard
+        document.getElementById("login-wrap").style.display = "none";
+        document.getElementById("dashboard-wrap").style.display = "block";
+        document.title = "QROBOTIX Dashboard"; // Update tab title
         
-        const ws = document.getElementById("wstatus");
-        ws.textContent = d.water_status ?? "--";
-        ws.className = "value " + (d.water_status === "GOOD" ? "status-good" : d.water_status === "OK" ? "status-ok" : "status-high");
+        // Start MQTT connection ONLY after successful login
+        initializeMQTT();
+      } else {
+        document.getElementById("loginError").style.display = "block";
+      }
+    }
 
-        setOnOff("motor", d.motor); setOnOff("light", d.light);
-        setValve("valve1", d.valve1); setValve("valve2", d.valve2); setValve("valve3", d.valve3); setValve("valve4", d.valve4);
+    // --- DASHBOARD/MQTT FUNCTION ---
+    function initializeMQTT() {
+      const broker  = "wss://ye9b1110.ala.asia-southeast1.emqxsl.com:8084/mqtt";
+      const options = {
+        clientId: "dashboard_" + Math.random().toString(16).slice(2, 8),
+        username: "qugates",
+        password: "qugates123",
+        clean: true,
+        connectTimeout: 5000,
+        reconnectPeriod: 3000
+      };
 
-        document.getElementById("lastSeen").textContent = "Last updated: " + new Date().toLocaleTimeString();
-        document.getElementById("rawJson").textContent = JSON.stringify(d, null, 2);
-      } catch (e) { }
-    });
+      client = mqtt.connect(broker, options);
 
-    function setOnOff(id, val) { const el = document.getElementById(id); el.textContent = val ? "ON" : "OFF"; el.className = "value " + (val ? "status-on" : "status-off"); }
-    function setValve(id, val) { const el = document.getElementById(id); el.textContent = val ? "OPEN" : "CLOSED"; el.className = "value " + (val ? "status-on" : "status-idle"); }
-    function sendCmd(cmd) { if (client.connected) client.publish(TOPIC_CMD, cmd); }
+      client.on("connect", () => {
+        const conn = document.getElementById("connStatus");
+        conn.innerHTML = '<span class="dot"></span>Connected to EMQX Cloud';
+        conn.className = "conn conn-ok";
+        client.subscribe(TOPIC_LIVE, (err) => {
+          if (err) console.log("Subscribe error:", err);
+        });
+      });
+
+      client.on("reconnect", () => {
+        const conn = document.getElementById("connStatus");
+        conn.innerHTML = '<span class="dot"></span>Reconnecting...';
+        conn.className = "conn conn-err";
+      });
+
+      client.on("error", (err) => {
+        console.log("MQTT error:", err);
+        const conn = document.getElementById("connStatus");
+        conn.innerHTML = '<span class="dot"></span>Connection Error';
+        conn.className = "conn conn-err";
+      });
+
+      client.on("close", () => {
+        const conn = document.getElementById("connStatus");
+        conn.innerHTML = '<span class="dot"></span>Connection Closed';
+        conn.className = "conn conn-err";
+      });
+
+      client.on("message", (topic, message) => {
+        try {
+          const d = JSON.parse(message.toString());
+
+          document.getElementById("ph").textContent = d.ph ?? "--";
+          document.getElementById("tds").textContent = (d.tds ?? "--") + " ppm";
+
+          const ws = document.getElementById("wstatus");
+          ws.textContent = d.water_status ?? "--";
+          ws.className = "value " + (
+            d.water_status === "GOOD" ? "status-good" :
+            d.water_status === "OK"   ? "status-ok" :
+            d.water_status ? "status-high" : "status-idle"
+          );
+
+          setOnOff("motor", d.motor);
+          setOnOff("light", d.light);
+          setValve("valve1", d.valve1);
+          setValve("valve2", d.valve2);
+          setValve("valve3", d.valve3);
+          setValve("valve4", d.valve4);
+
+          document.getElementById("lastSeen").textContent =
+            "Last updated: " + new Date().toLocaleTimeString();
+
+          document.getElementById("rawJson").textContent =
+            JSON.stringify(d, null, 2);
+
+        } catch (e) {
+          console.log("Parse error:", e);
+          document.getElementById("rawJson").textContent = message.toString();
+        }
+      });
+    }
+
+    // UI Helpers
+    function setOnOff(id, val) {
+      const el = document.getElementById(id);
+      el.textContent = val ? "ON" : "OFF";
+      el.className = "value " + (val ? "status-on" : "status-off");
+    }
+
+    function setValve(id, val) {
+      const el = document.getElementById(id);
+      el.textContent = val ? "OPEN" : "CLOSED";
+      el.className = "value " + (val ? "status-on" : "status-idle");
+    }
+
+    // Send MQTT commands
+    function sendCmd(cmd) {
+      if (!client || !client.connected) {
+        alert("Not connected to MQTT broker. Please wait.");
+        return;
+      }
+      client.publish(TOPIC_CMD, cmd, { qos: 0, retain: false });
+      console.log("Command sent:", cmd);
+    }
   </script>
 </body>
 </html>
